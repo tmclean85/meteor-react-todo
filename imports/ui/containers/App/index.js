@@ -36,20 +36,23 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.toDoInput.focus();
+    if (this.props.currentUserId) {
+      this.toDoInput.focus();
+    }
   }
   
   toggleComplete(item) {
-    ToDos.update(item._id, { $set: { complete: !item.complete } });
+    Meteor.call('todos.toggleComplete', item);
+    // ToDos.update(item._id, { $set: { complete: !item.complete } });
   }
   
   removeToDo = (item) => {
-    ToDos.remove(item._id)
+    Meteor.call('todos.removeToDo', item);
+    // ToDos.remove(item._id)
   }
   
   removeCompleted = () => {
-    const todoIds = this.props.todos.filter(todo => todo.complete).map(todo => todo._id);
-    todoIds.forEach(id => ToDos.remove(id));
+    Meteor.call('todos.removeComplete');
   }
 
   hasCompleted = () => {
@@ -60,11 +63,7 @@ class App extends Component {
   addToDo = (event) => {
     event.preventDefault();
     if (this.toDoInput.value) {
-      ToDos.insert({
-        owner: this.props.currentUserId,
-        title: this.toDoInput.value,
-        complete: false
-      });
+      Meteor.call('todos.addToDo', this.toDoInput.value)
     }
     this.toDoInput.value = '';
   }
@@ -144,6 +143,7 @@ App.propTypes = {
 
 
 export default createContainer(() => {
+  Meteor.subscribe('todos');
   return {
     currentUser: Meteor.user(),
     currentUserId: Meteor.userId(),
